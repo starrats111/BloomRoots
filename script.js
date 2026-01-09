@@ -168,22 +168,22 @@ function renderArticles(articles, containerId) {
 
     container.innerHTML = articles.map(article => `
         <article class="article-card">
-            <div class="article-image">
-                <img src="${article.heroImage || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=600&fit=crop'}" alt="${article.title}" loading="lazy">
-                <div class="article-image-overlay">
-                    <span class="article-category">${article.categoryName}</span>
-                    <h2 class="article-title">
-                        <a href="article.html?id=${article.id}">${article.title}</a>
-                    </h2>
-                    <p class="article-excerpt">${article.excerpt}</p>
+            <a href="article.html?id=${article.id}" class="article-card-link">
+                <div class="article-image">
+                    <img src="${article.heroImage || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=600&fit=crop'}" alt="${article.title}" loading="lazy">
+                    <div class="article-image-overlay">
+                        <span class="article-category">${article.categoryName}</span>
+                        <h2 class="article-title">${article.title}</h2>
+                        <p class="article-excerpt">${article.excerpt}</p>
+                    </div>
                 </div>
-            </div>
-            <div class="article-content">
-                <div class="article-meta">
-                    <span>By ${article.author}</span>
-                    <span>${article.date}</span>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span>By ${article.author}</span>
+                        <span>${article.date}</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         </article>
     `).join('');
 }
@@ -273,8 +273,13 @@ function initPage() {
     const articleId = getUrlParameter('id');
 
     if (articleId) {
-        // Load article page
-        loadArticle(parseInt(articleId));
+        // Load article page - ensure it's parsed as integer
+        const id = parseInt(articleId, 10);
+        if (!isNaN(id)) {
+            loadArticle(id);
+        } else {
+            window.location.href = 'index.html';
+        }
     } else if (category) {
         // Load category page
         loadCategory(category);
@@ -337,7 +342,9 @@ function loadCategory(category) {
 }
 
 function loadArticle(id) {
-    const article = articlesData.find(a => a.id === id);
+    // Ensure id is a number
+    const articleId = typeof id === 'string' ? parseInt(id, 10) : id;
+    const article = articlesData.find(a => a.id === articleId);
     if (!article) {
         window.location.href = 'index.html';
         return;
