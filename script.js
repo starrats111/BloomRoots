@@ -161,14 +161,26 @@ function getUrlParameter(name) {
     return urlParams.get(name);
 }
 
+// Convert title to URL-friendly slug
+function titleToSlug(title) {
+    return title
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')      // Replace spaces with hyphens
+        .replace(/-+/g, '-')       // Replace multiple hyphens with single hyphen
+        .trim();
+}
+
 // Render articles
 function renderArticles(articles, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = articles.map(article => `
+    container.innerHTML = articles.map(article => {
+        const articleSlug = titleToSlug(article.title);
+        return `
         <article class="article-card">
-            <a href="article.html?id=${article.id}" class="article-card-link">
+            <a href="article.html?title=${encodeURIComponent(articleSlug)}" class="article-card-link">
                 <div class="article-image">
                     <img src="${article.heroImage || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=600&fit=crop'}" alt="${article.title}" loading="lazy">
                     <div class="article-image-overlay">
@@ -185,7 +197,8 @@ function renderArticles(articles, containerId) {
                 </div>
             </a>
         </article>
-    `).join('');
+    `;
+    }).join('');
 }
 
 // Pagination
@@ -270,16 +283,11 @@ function changePage(page) {
 // Initialize page
 function initPage() {
     const category = getUrlParameter('cat');
-    const articleId = getUrlParameter('id');
+    const articleTitle = getUrlParameter('title');
 
-    if (articleId) {
-        // Load article page - ensure it's parsed as integer
-        const id = parseInt(articleId, 10);
-        if (!isNaN(id)) {
-            loadArticle(id);
-        } else {
-            window.location.href = 'index.html';
-        }
+    if (articleTitle) {
+        // Load article page by title slug
+        loadArticleByTitle(articleTitle);
     } else if (category) {
         // Load category page
         loadCategory(category);
@@ -341,14 +349,19 @@ function loadCategory(category) {
     renderPagination(filteredArticles.length, 'pagination');
 }
 
-function loadArticle(id) {
-    // Ensure id is a number
-    const articleId = typeof id === 'string' ? parseInt(id, 10) : id;
-    const article = articlesData.find(a => a.id === articleId);
+function loadArticleByTitle(titleSlug) {
+    // Find article by matching title slug
+    const article = articlesData.find(a => titleToSlug(a.title) === titleSlug);
     if (!article) {
         window.location.href = 'index.html';
         return;
     }
+    
+    loadArticleContent(article);
+}
+
+function loadArticleContent(article) {
+    // This function contains the article rendering logic
 
     // Build article content with images
     let articleBodyHTML = '';
