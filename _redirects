@@ -1,6 +1,0 @@
-# Redirect category pages
-/category    /category.html   200
-
-# Redirect article pages  
-/article    /article.html   200
-
